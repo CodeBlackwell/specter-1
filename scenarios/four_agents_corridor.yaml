@@ -1,0 +1,17 @@
+world:
+  width: 16
+  height: 8
+
+walls:
+  - [4, 2, 12, 2]
+  - [4, 6, 12, 6]
+
+agents:
+  - { id: alpha,   x: 2,  y: 4, theta: 0.0,   vx: 0.4,  omega: 0.05 }
+  - { id: bravo,   x: 14, y: 4, theta: 3.14,  vx: -0.4, omega: -0.05 }
+  - { id: charlie, x: 8,  y: 7, theta: -1.57, vy: -0.3 }
+  - { id: delta,   x: 8,  y: 1, theta: 1.57,  vy: 0.3 }
+
+seed: 7
+duration: 600
+bounce: true

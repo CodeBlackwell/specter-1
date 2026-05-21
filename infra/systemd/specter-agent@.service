@@ -1,0 +1,30 @@
+[Unit]
+Description=Specter agent node (%i)
+After=network-online.target chronyd.service
+Wants=network-online.target chronyd.service
+# Refuse to start until the system clock is within 100ms of NTP — the
+# trust engine's clock-skew threshold is 5s and we want a safety margin.
+ConditionPathExists=/var/lib/chrony/drift
+
+[Service]
+Type=simple
+User=specter
+Group=specter
+WorkingDirectory=/opt/specter
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=-/etc/specter/agent.env
+ExecStart=/opt/specter/.venv/bin/python -m specter.ros2.agent_node \
+    --agent-id %i \
+    --roster /opt/specter/deploy/roster.yaml \
+    --identity /opt/specter/deploy/keystore/%i.key.pem \
+    --keystore /opt/specter/deploy/sros2_keystore
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+# Crash-loop guard: 5 restarts in 60s → stop and require operator intervention.
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

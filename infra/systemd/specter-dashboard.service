@@ -1,0 +1,27 @@
+[Unit]
+Description=Specter operator dashboard
+After=network-online.target chronyd.service
+Wants=network-online.target chronyd.service
+
+[Service]
+Type=simple
+User=specter
+Group=specter
+WorkingDirectory=/opt/specter
+Environment="PYTHONUNBUFFERED=1"
+# SDL_VIDEODRIVER must be set in /etc/specter/dashboard.env for headless
+# operator stations (e.g., SDL_VIDEODRIVER=offscreen with VNC export, or
+# SDL_VIDEODRIVER=wayland for a real display).
+EnvironmentFile=-/etc/specter/dashboard.env
+ExecStart=/opt/specter/.venv/bin/python -m specter.ros2.dashboard_node \
+    --roster /opt/specter/deploy/roster.yaml \
+    --keystore /opt/specter/deploy/sros2_keystore
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

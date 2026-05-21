@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 540" font-family="Menlo, Monaco, Courier" font-size="12">
+  <style>
+    .abc { fill: #fff5d6; stroke: #c9a961; stroke-width: 2; }
+    .impl { fill: #f0f4ec; stroke: #7a9b5e; stroke-width: 1.5; }
+    .arrow { fill: none; stroke: #5a5a69; stroke-width: 1.5; marker-end: url(#a); }
+    .lbl-abc { font-weight: bold; fill: #5a3300; }
+    .lbl-impl { fill: #2a4a1e; }
+    .lbl-port { fill: #6b1010; font-style: italic; font-size: 10px; }
+    .group { fill: none; stroke: #aab; stroke-width: 1; stroke-dasharray: 4,3; }
+    .title { font-size: 16px; font-weight: bold; fill: #1a1a1a; }
+    .subtitle { font-size: 11px; fill: #5a5a69; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5a5a69"/>
+    </marker>
+  </defs>
+
+  <text x="20" y="30" class="title">specter-1 — ABC seams (hardware-integration spec)</text>
+  <text x="20" y="50" class="subtitle">Subclass each box marked "&lt;&lt; PORT &gt;&gt;" to run the demonstrator on TurtleBot4 / Crazyflie+UWB (ADR 0006).</text>
+
+  <!-- Sensors group -->
+  <rect x="20" y="80" width="220" height="180" class="group" rx="6"/>
+  <text x="30" y="100" class="subtitle">SENSING</text>
+  <rect x="40" y="115" width="180" height="42" class="abc" rx="4"/>
+  <text x="50" y="135" class="lbl-abc">SensorAdapter (ABC)</text>
+  <text x="50" y="150" class="lbl-port">&lt;&lt; PORT &gt;&gt; lidar / IMU / UWB</text>
+
+  <rect x="40" y="180" width="180" height="60" class="impl" rx="4"/>
+  <text x="50" y="200" class="lbl-impl">sim.sensors</text>
+  <text x="50" y="215" class="subtitle">lidar_scan, imu_sample,</text>
+  <text x="50" y="228" class="subtitle">range_beacons (sim impl)</text>
+
+  <!-- Local SLAM -->
+  <rect x="280" y="80" width="220" height="180" class="group" rx="6"/>
+  <text x="290" y="100" class="subtitle">LOCAL SLAM</text>
+  <rect x="300" y="115" width="180" height="42" class="abc" rx="4"/>
+  <text x="310" y="135" class="lbl-abc">LocalSlam (ABC)</text>
+  <text x="310" y="150" class="lbl-port">&lt;&lt; PORT &gt;&gt; pose() + map_fragment()</text>
+
+  <rect x="300" y="180" width="180" height="32" class="impl" rx="4"/>
+  <text x="310" y="200" class="lbl-impl">DeadReckoningSlam</text>
+  <rect x="300" y="220" width="180" height="32" class="impl" rx="4"/>
+  <text x="310" y="240" class="lbl-impl">ScanMatchSlam (default)</text>
+
+  <!-- Bus / Transport -->
+  <rect x="540" y="80" width="220" height="180" class="group" rx="6"/>
+  <text x="550" y="100" class="subtitle">TRANSPORT</text>
+  <rect x="560" y="115" width="180" height="42" class="abc" rx="4"/>
+  <text x="570" y="135" class="lbl-abc">MessageBus (ABC)</text>
+  <text x="570" y="150" class="lbl-port">&lt;&lt; PORT &gt;&gt; subscribe / publish</text>
+
+  <rect x="560" y="180" width="180" height="22" class="impl" rx="4"/>
+  <text x="570" y="195" class="lbl-impl">InProcessBus</text>
+  <rect x="560" y="208" width="180" height="22" class="impl" rx="4"/>
+  <text x="570" y="223" class="lbl-impl">LossyBus (test wrapper)</text>
+  <rect x="560" y="236" width="180" height="22" class="impl" rx="4"/>
+  <text x="570" y="251" class="lbl-impl">Sros2Bus (DDS, ADR 0011)</text>
+
+  <!-- Map merger -->
+  <rect x="20" y="300" width="220" height="120" class="group" rx="6"/>
+  <text x="30" y="320" class="subtitle">COOPERATIVE SLAM</text>
+  <rect x="40" y="335" width="180" height="42" class="abc" rx="4"/>
+  <text x="50" y="355" class="lbl-abc">MapMerger (ABC)</text>
+  <text x="50" y="370" class="lbl-port">&lt;&lt; PORT &gt;&gt; merge fragments</text>
+  <rect x="40" y="385" width="180" height="22" class="impl" rx="4"/>
+  <text x="50" y="400" class="lbl-impl">OccupancyMapMerger</text>
+
+  <!-- Trust evaluator -->
+  <rect x="280" y="300" width="220" height="120" class="group" rx="6"/>
+  <text x="290" y="320" class="subtitle">TRUST</text>
+  <rect x="300" y="335" width="180" height="42" class="abc" rx="4"/>
+  <text x="310" y="355" class="lbl-abc">TrustEvaluator (ABC)</text>
+  <text x="310" y="370" class="lbl-port">observe / record_*</text>
+  <rect x="300" y="385" width="180" height="22" class="impl" rx="4"/>
+  <text x="310" y="400" class="lbl-impl">BetaTrustEvaluator</text>
+
+  <!-- Telemetry -->
+  <rect x="540" y="300" width="220" height="120" class="group" rx="6"/>
+  <text x="550" y="320" class="subtitle">OBSERVABILITY</text>
+  <rect x="560" y="335" width="180" height="42" class="abc" rx="4"/>
+  <text x="570" y="355" class="lbl-abc">Telemetry (ABC)</text>
+  <text x="570" y="370" class="lbl-port">&lt;&lt; PORT &gt;&gt; emit(event, **fields)</text>
+  <rect x="560" y="385" width="180" height="22" class="impl" rx="4"/>
+  <text x="570" y="400" class="lbl-impl">ListTelemetry / JsonlSink</text>
+
+  <!-- Identity -->
+  <rect x="20" y="450" width="740" height="60" class="group" rx="6"/>
+  <text x="30" y="470" class="subtitle">IDENTITY (Wave-1, ADR 0009 — runtime roster + rotation + revocation + attestation)</text>
+  <rect x="40" y="478" width="170" height="22" class="impl" rx="4"/>
+  <text x="50" y="493" class="lbl-impl">MutableRoster</text>
+  <rect x="220" y="478" width="170" height="22" class="impl" rx="4"/>
+  <text x="230" y="493" class="lbl-impl">RevocationList</text>
+  <rect x="400" y="478" width="170" height="22" class="impl" rx="4"/>
+  <text x="410" y="493" class="lbl-impl">KeyRotationAnnouncement</text>
+  <rect x="580" y="478" width="170" height="22" class="impl" rx="4"/>
+  <text x="590" y="493" class="lbl-port">AttestationProvider &lt;&lt; PORT &gt;&gt;</text>
+
+  <!-- Arrows -->
+  <path class="arrow" d="M 240 138 L 300 138"/>
+  <path class="arrow" d="M 480 138 L 560 138"/>
+  <path class="arrow" d="M 130 260 L 130 335"/>
+  <path class="arrow" d="M 390 260 L 390 335"/>
+  <path class="arrow" d="M 650 260 L 650 335"/>
+  <path class="arrow" d="M 380 478 L 380 420"/>
+
+  <text x="780" y="100" class="subtitle">DATA FLOW</text>
+  <text x="780" y="120" font-size="10">Sensor → SLAM →</text>
+  <text x="780" y="135" font-size="10">  fragment → Bus →</text>
+  <text x="780" y="150" font-size="10">    MapMerger</text>
+  <text x="780" y="170" font-size="10">SLAM → pose → Bus →</text>
+  <text x="780" y="185" font-size="10">  TrustEvaluator</text>
+  <text x="780" y="205" font-size="10">Trust → Telemetry</text>
+  <text x="780" y="240" class="subtitle">"&lt;&lt; PORT &gt;&gt;" = subclass</text>
+  <text x="780" y="255" class="subtitle">at this seam to run on</text>
+  <text x="780" y="270" class="subtitle">real hardware. Other</text>
+  <text x="780" y="285" class="subtitle">boxes stay unchanged.</text>
+</svg>

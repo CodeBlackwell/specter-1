@@ -1,0 +1,335 @@
+{
+  "version": 1,
+  "format": "scenarios-parity-v1",
+  "note": "Integer-exact per-tick reject counts by category; reputation curves to 6 decimals on deterministic scenarios. COP filter exact-float on synthetic contact logs.",
+  "scenarios": {
+    "honest_baseline": {
+      "name": "honest_baseline",
+      "n_peers": 2,
+      "ticks": [
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.52381,
+            "a1": 0.52381
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.544067,
+            "a1": 0.544067
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.561472,
+            "a1": 0.561472
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.576555,
+            "a1": 0.576555
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.589722,
+            "a1": 0.589722
+          }
+        }
+      ],
+      "final_reputations": {
+        "a0": 0.589722,
+        "a1": 0.589722
+      }
+    },
+    "swap_key": {
+      "name": "swap_key",
+      "n_peers": 2,
+      "swap_key_tick": 3,
+      "ticks": [
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.52381,
+            "a1": 0.52381
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.544067,
+            "a1": 0.544067
+          }
+        },
+        {
+          "accepts": 1,
+          "rejects": 1,
+          "rejects_by_category": {
+            "bad_signature": 1
+          },
+          "reputations": {
+            "a0": 0.37114,
+            "a1": 0.561472
+          }
+        },
+        {
+          "accepts": 1,
+          "rejects": 1,
+          "rejects_by_category": {
+            "bad_signature": 1
+          },
+          "reputations": {
+            "a0": 0.284855,
+            "a1": 0.576555
+          }
+        },
+        {
+          "accepts": 1,
+          "rejects": 1,
+          "rejects_by_category": {
+            "bad_signature": 1
+          },
+          "reputations": {
+            "a0": 0.23324,
+            "a1": 0.589722
+          }
+        },
+        {
+          "accepts": 1,
+          "rejects": 1,
+          "rejects_by_category": {
+            "bad_signature": 1
+          },
+          "reputations": {
+            "a0": 0.198964,
+            "a1": 0.601289
+          }
+        },
+        {
+          "accepts": 1,
+          "rejects": 1,
+          "rejects_by_category": {
+            "bad_signature": 1
+          },
+          "reputations": {
+            "a0": 0.174596,
+            "a1": 0.611508
+          }
+        }
+      ],
+      "final_reputations": {
+        "a0": 0.174596,
+        "a1": 0.611508
+      }
+    },
+    "replay_storm": {
+      "name": "replay_storm",
+      "n_peers": 2,
+      "replay_start_tick": 2,
+      "replay_repetitions": 10,
+      "ticks": [
+        {
+          "accepts": 2,
+          "rejects": 0,
+          "rejects_by_category": {},
+          "reputations": {
+            "a0": 0.52381,
+            "a1": 0.52381
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 10,
+          "rejects_by_category": {
+            "replay": 10
+          },
+          "reputations": {
+            "a0": 0.097865,
+            "a1": 0.544067
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 10,
+          "rejects_by_category": {
+            "replay": 10
+          },
+          "reputations": {
+            "a0": 0.059247,
+            "a1": 0.561472
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 10,
+          "rejects_by_category": {
+            "replay": 10
+          },
+          "reputations": {
+            "a0": 0.044793,
+            "a1": 0.576555
+          }
+        }
+      ],
+      "final_reputations": {
+        "a0": 0.044793,
+        "a1": 0.576555
+      }
+    },
+    "forged_emitter": {
+      "name": "forged_emitter",
+      "n_peers": 2,
+      "foreign_emitter": "intruder",
+      "ticks": [
+        {
+          "accepts": 2,
+          "rejects": 1,
+          "rejects_by_category": {
+            "unknown_sender": 1
+          },
+          "reputations": {
+            "a0": 0.52381,
+            "a1": 0.52381,
+            "intruder": 0.333333
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 1,
+          "rejects_by_category": {
+            "unknown_sender": 1
+          },
+          "reputations": {
+            "a0": 0.544067,
+            "a1": 0.544067,
+            "intruder": 0.254257
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 1,
+          "rejects_by_category": {
+            "unknown_sender": 1
+          },
+          "reputations": {
+            "a0": 0.561472,
+            "a1": 0.561472,
+            "intruder": 0.208178
+          }
+        },
+        {
+          "accepts": 2,
+          "rejects": 1,
+          "rejects_by_category": {
+            "unknown_sender": 1
+          },
+          "reputations": {
+            "a0": 0.576555,
+            "a1": 0.576555,
+            "intruder": 0.178068
+          }
+        }
+      ],
+      "final_reputations": {
+        "a0": 0.576555,
+        "a1": 0.576555,
+        "intruder": 0.178068
+      }
+    },
+    "cop_phantom_static": {
+      "name": "cop_phantom_static",
+      "real_item": {
+        "id": "uxo-real",
+        "kind": "uxo",
+        "x": 0.0,
+        "y": 0.0
+      },
+      "phantom_item": {
+        "id": "phantom-1",
+        "kind": "uxo",
+        "x": 5.0,
+        "y": 5.0
+      },
+      "peers": [
+        "alpha",
+        "bravo",
+        "charlie",
+        "delta"
+      ],
+      "case_high_rep": {
+        "reputations": {
+          "alpha": 0.9,
+          "bravo": 0.9,
+          "charlie": 0.9,
+          "delta": 0.9
+        },
+        "cop": {
+          "uxo-real": {
+            "contact_id": "uxo-real",
+            "kind": "uxo",
+            "x": 0.0,
+            "y": 0.0,
+            "weight": 0.9,
+            "reporters": [
+              "alpha",
+              "bravo",
+              "charlie"
+            ]
+          },
+          "phantom-1": {
+            "contact_id": "phantom-1",
+            "kind": "uxo",
+            "x": 5.0,
+            "y": 5.0,
+            "weight": 0.9,
+            "reporters": [
+              "delta"
+            ]
+          }
+        }
+      },
+      "case_low_rep": {
+        "reputations": {
+          "alpha": 0.9,
+          "bravo": 0.9,
+          "charlie": 0.9,
+          "delta": 0.1
+        },
+        "cop": {
+          "uxo-real": {
+            "contact_id": "uxo-real",
+            "kind": "uxo",
+            "x": 0.0,
+            "y": 0.0,
+            "weight": 0.9,
+            "reporters": [
+              "alpha",
+              "bravo",
+              "charlie"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

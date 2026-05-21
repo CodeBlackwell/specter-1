@@ -1,0 +1,13 @@
+world:
+  width: 10
+  height: 10
+
+walls:
+  - [5, 0, 5, 5]
+
+agents:
+  - { id: alpha, x: 2, y: 2, theta: 0.0,  vx: 0.3,  omega: 0.10 }
+  - { id: bravo, x: 8, y: 8, theta: 3.14, vx: -0.2, omega: -0.10 }
+
+seed: 42
+duration: 400

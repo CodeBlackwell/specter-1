@@ -1,0 +1,218 @@
+.btn {
+  font: 600 13px/18px var(--font-mono);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 100ms, border-color 100ms, color 100ms, box-shadow 100ms;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+.btn:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-dim);
+}
+.btn[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn--primary {
+  background: var(--accent-primary);
+  color: var(--accent-ink);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 0 18px rgba(var(--accent-rgb), 0.35);
+}
+.btn--primary:hover:not([disabled]) {
+  background: var(--accent-hover);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 0 26px rgba(var(--accent-rgb), 0.50);
+}
+.btn--secondary {
+  background: var(--surface-2);
+  color: var(--text-hi);
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 var(--glass-edge-top);
+}
+.btn--secondary:hover:not([disabled]) {
+  background: var(--surface-3);
+  border-color: rgba(var(--accent-rgb), 0.42);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--text-mid);
+}
+.btn--ghost:hover:not([disabled]) {
+  color: var(--text-hi);
+  background: var(--surface-2);
+}
+.btn--danger {
+  background: var(--surface-2);
+  color: var(--status-byzantine);
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 var(--glass-edge-top);
+}
+.btn--danger:hover:not([disabled]) {
+  background: rgba(239, 90, 77, 0.14);
+  border-color: var(--status-byzantine);
+}
+.btn--sm { padding: 4px 10px; font-size: 11px; line-height: 14px; letter-spacing: 0.8px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  font: 600 11px/15px var(--font-mono);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  color: var(--text-mid);
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 var(--glass-edge-top);
+}
+.pill--nominal {
+  color: var(--status-nominal);
+  border-color: rgba(63, 201, 122, 0.45);
+  background: rgba(63, 201, 122, 0.12);
+}
+.pill--flagged {
+  color: var(--status-flagged);
+  border-color: rgba(240, 168, 58, 0.45);
+  background: rgba(240, 168, 58, 0.12);
+}
+.pill--byzantine {
+  color: var(--status-byzantine);
+  border-color: rgba(239, 90, 77, 0.45);
+  background: rgba(239, 90, 77, 0.12);
+}
+.pill--accent {
+  color: var(--accent-primary);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--accent-rgb), 0.12);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: var(--radius-sm);
+  font: 600 12px/15px var(--font-mono);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: border-color 100ms, color 100ms, background 100ms, box-shadow 100ms;
+}
+.chip:hover { color: var(--text-hi); border-color: var(--border-strong); }
+.chip:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+.chip[aria-pressed="true"] {
+  color: var(--text-hi);
+  border-color: var(--accent-primary);
+  background: var(--accent-dim);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.28);
+}
+.chip__swatch {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tabs__tab {
+  font: 600 12px/15px var(--font-mono);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-mid);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: color 100ms, border-color 100ms, text-shadow 100ms;
+  margin-bottom: -1px;
+}
+.tabs__tab:hover { color: var(--text-hi); }
+.tabs__tab[aria-selected="true"] {
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
+  text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.35);
+}
+.tabs__tab:focus-visible {
+  outline: 1px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+
+/* Two-thumb range slider used by Free Play's ScheduleBlock.
+   Both <input type="range"> are stacked absolutely on the same axis;
+   pointer-events: none on the track lets clicks fall through to whichever
+   thumb is under the cursor (each thumb has its own auto hit region).
+   The ScheduleBlock JSX bumps z-index of the thumb in its "unusual" half so
+   when thumbs cluster near one edge, both stay grabbable. */
+.composer-range-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  height: 28px;
+  outline: none;
+  padding: 0;
+  margin: 0;
+}
+.composer-range-thumb::-webkit-slider-runnable-track {
+  background: transparent;
+  border: 0;
+  height: 4px;
+}
+.composer-range-thumb::-moz-range-track {
+  background: transparent;
+  border: 0;
+  height: 4px;
+}
+.composer-range-thumb::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 2px solid var(--accent-ink);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.55);
+  cursor: pointer;
+  margin-top: -5px;
+}
+.composer-range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  border: 2px solid var(--accent-ink);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.55);
+  cursor: pointer;
+}
+.composer-range-thumb:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+.composer-range-thumb:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}

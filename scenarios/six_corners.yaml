@@ -1,0 +1,15 @@
+world:
+  width: 10
+  height: 10
+
+agents:
+  - { id: alpha,    x: 4.5, y: 4.5, theta:  0.0, vx:  0.05 }
+  - { id: bravo,    x: 5.5, y: 4.5, theta:  3.14, vx: -0.05 }
+  - { id: charlie,  x: 4.5, y: 5.5, theta:  1.57, vy:  0.05 }
+  - { id: delta,    x: 5.5, y: 5.5, theta: -1.57, vy: -0.05 }
+  - { id: echo,     x: 4.0, y: 5.0, theta:  0.0,  vx:  0.05 }
+  - { id: foxtrot,  x: 6.0, y: 5.0, theta:  3.14, vx: -0.05 }
+
+seed: 7
+duration: 200
+bounce: true

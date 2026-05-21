@@ -1,0 +1,27 @@
+# Phase 1 EXIT battery — ROS2 Humble + project deps pre-baked so re-runs are fast.
+# Built and invoked via `just battery-docker`. Repo mounts in at /workspace at run time.
+FROM ros:humble
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3-pip python3-venv curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir uv
+
+# Pre-warm uv's wheel cache against the repo's lockfile so `uv sync` at run
+# time is mostly a no-op. Copy only pyproject + lockfile (not the full repo)
+# so source edits don't invalidate this layer.
+WORKDIR /pre-warm
+COPY pyproject.toml uv.lock* ./
+RUN uv venv /opt/specter-venv \
+    && . /opt/specter-venv/bin/activate \
+    && uv sync --all-extras --no-install-project || true
+
+WORKDIR /workspace
+SHELL ["/bin/bash", "-c"]
+ENV BASH_ENV=/root/.bashrc
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc \
+    && echo "source /opt/specter-venv/bin/activate" >> /root/.bashrc
+
+CMD ["bash", "-lc", "source /opt/ros/humble/setup.bash && source /opt/specter-venv/bin/activate && uv sync --all-extras && SPECTER_BATTERY_MULTIPROCESS=1 pytest tests/integration/test_battery_multiprocess.py -v"]

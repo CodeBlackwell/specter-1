@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - run: uv run pytest -q
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - run: uv run ruff check src tests
+      - run: uv run mypy src
+
+  notebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --extra workshop --extra viz
+      - name: Execute every notebook end-to-end
+        env:
+          MPLBACKEND: Agg
+        run: |
+          uv run jupyter nbconvert --to notebook --execute \
+              notebooks/*.ipynb --output-dir /tmp/nb-out
+      - name: Reject pygame imports inside notebooks
+        run: |
+          if grep -l "import pygame" notebooks/*.ipynb; then
+            echo "notebooks must not import pygame; matplotlib only" >&2
+            exit 1
+          fi
+
+  demo-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - name: Headless demo smoke (5 ticks)
+        env:
+          SPECTER_DEMO_MAX_TICKS: "5"
+          SDL_VIDEODRIVER: dummy
+        run: uv run python examples/unified_demo.py
+
+  ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.1.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r typecheck
+      - run: pnpm -r test
+      - run: pnpm --filter @specter/app generate-fixtures
+      - run: pnpm --filter @specter/app generate-notebooks
+      - run: pnpm --filter @specter/app build

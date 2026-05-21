@@ -1,0 +1,39 @@
+syntax = "proto3";
+package specter;
+
+// Versioned envelope. All on-the-wire payloads sit inside SignedMessage.
+message SignedMessage {
+  uint32 version = 1;
+  string sender_id = 2;
+  uint64 nonce = 3;
+  uint64 timestamp_ns = 4;
+  bytes payload = 5;
+  bytes signature = 6;
+}
+
+message PoseReport {
+  string agent_id = 1;
+  double x = 2;
+  double y = 3;
+  double theta = 4;
+  uint64 timestamp_ns = 5;
+}
+
+message MapFragment {
+  string agent_id = 1;
+  double origin_x = 2;
+  double origin_y = 3;
+  double resolution = 4;
+  uint32 width = 5;
+  uint32 height = 6;
+  bytes occupancy_grid = 7;
+  uint64 timestamp_ns = 8;
+}
+
+message Observation {
+  string observer_id = 1;
+  string subject_id = 2;
+  double range_m = 3;
+  double bearing_rad = 4;
+  uint64 timestamp_ns = 5;
+}
