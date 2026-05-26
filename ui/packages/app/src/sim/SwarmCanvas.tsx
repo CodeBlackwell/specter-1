@@ -798,7 +798,6 @@ export function SwarmCanvas({
       </svg>
       <HoverHintOverlay hint={hint} containerRef={containerRef} pinned />
       {hint ? null : <Legend />}
-      <DefenseCallout trustView={trustView} />
       <NarrationBanner lessonId={lessonId} currentTick={currentTick} />
       <MapStatusOverlay
         detections={detections}
@@ -1494,6 +1493,32 @@ const CohortPulses = memo(function CohortPulses({
               strokeWidth={0.12}
               strokeDasharray="0.6 0.4"
               opacity={0}
+              pointerEvents="none"
+            >
+              <animate
+                attributeName="opacity"
+                values="0;0.6;0.22"
+                keyTimes="0;0.3;1"
+                dur={`${COHORT_PULSE_MS}ms`}
+                begin="0s"
+                repeatCount="1"
+                fill="freeze"
+              />
+              <animate
+                attributeName="r"
+                from={(COHORT_RAY_LEN_MAX + 0.6).toString()}
+                to={(COHORT_RAY_LEN_MAX + 1.4).toString()}
+                dur={`${COHORT_PULSE_MS}ms`}
+                begin="0s"
+                repeatCount="1"
+                fill="freeze"
+              />
+            </circle>
+            <circle
+              cx={subject.x}
+              cy={subject.y}
+              r={COHORT_RAY_LEN_MAX + 2.0}
+              fill="transparent"
               style={{ cursor: "help", pointerEvents: "all" }}
               onPointerEnter={() => {
                 onOverlayHover(cohortKey);
@@ -1512,28 +1537,9 @@ const CohortPulses = memo(function CohortPulses({
                 onOverlayHover(null);
                 setHint(null);
               }}
-            >
-              <animate
-                attributeName="opacity"
-                values="0;0.6;0"
-                keyTimes="0;0.3;1"
-                dur={`${COHORT_PULSE_MS}ms`}
-                begin="0s"
-                repeatCount="1"
-                fill="freeze"
-              />
-              <animate
-                attributeName="r"
-                from={(COHORT_RAY_LEN_MAX + 0.6).toString()}
-                to={(COHORT_RAY_LEN_MAX + 1.4).toString()}
-                dur={`${COHORT_PULSE_MS}ms`}
-                begin="0s"
-                repeatCount="1"
-                fill="freeze"
-              />
-            </circle>
+            />
             {lit ? (
-              <g>
+              <g pointerEvents="none">
                 {claims.map((c, k) => {
                   const angle = k * angleStep - Math.PI / 2;
                   const observer = agentById.get(c.observer_id);
@@ -3619,160 +3625,6 @@ const NarrationBanner = memo(function NarrationBanner({
     </div>
   );
 });
-
-const DefenseCallout = memo(function DefenseCallout({
-  trustView,
-}: {
-  trustView: ReturnType<typeof computeTrustView>;
-}) {
-  const tier2Firing =
-    trustView.embeddability >= TIER2_TAU && trustView.tier2Top !== null;
-  const tier1Firing = trustView.tier1MaxDelta > TIER1_THRESHOLD_M;
-  if (!tier1Firing && !tier2Firing) return null;
-
-  const tier2A = tier2Firing
-    ? trustView.agentIds[trustView.tier2Top!.i]
-    : null;
-  const tier2B = tier2Firing
-    ? trustView.agentIds[trustView.tier2Top!.j]
-    : null;
-  const tier1A = tier1Firing && trustView.tier1Top
-    ? trustView.agentIds[trustView.tier1Top.i]
-    : null;
-  const tier1B = tier1Firing && trustView.tier1Top
-    ? trustView.agentIds[trustView.tier1Top.j]
-    : null;
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: 12,
-        top: 12,
-        display: "flex",
-        flexDirection: "column",
-        gap: 6,
-        maxWidth: 280,
-        pointerEvents: "none",
-      }}
-    >
-      {tier2Firing ? (
-        <CalloutCard
-          tone="var(--accent-warn)"
-          label="TIER 2 · MDS EMBEDDABILITY"
-          rows={[
-            {
-              k: "score",
-              v: `${trustView.embeddability.toFixed(3)} > τ ${TIER2_TAU.toFixed(2)}`,
-            },
-            {
-              k: "edge residual",
-              v: `${trustView.tier2Top!.residual.toFixed(2)} m`,
-            },
-            {
-              k: "flagging",
-              v: tier2A && tier2B ? `${tier2A} ↔ ${tier2B}` : "—",
-            },
-          ]}
-          subtitle="three honest ranges must embed in 2D — these two break it"
-        />
-      ) : null}
-      {tier1Firing ? (
-        <CalloutCard
-          tone="var(--status-flagged)"
-          label="TIER 1 · RECIPROCITY GAP"
-          rows={[
-            {
-              k: "gap",
-              v: `${trustView.tier1MaxDelta.toFixed(2)} m > 3σ ${TIER1_THRESHOLD_M.toFixed(2)} m`,
-            },
-            {
-              k: "flagging",
-              v: tier1A && tier1B ? `${tier1A} ↔ ${tier1B}` : "—",
-            },
-          ]}
-          subtitle="reciprocal range mismatch — bad sensor or bad actor"
-        />
-      ) : null}
-    </div>
-  );
-});
-
-function CalloutCard({
-  tone,
-  label,
-  rows,
-  subtitle,
-}: {
-  tone: string;
-  label: string;
-  rows: ReadonlyArray<{ k: string; v: string }>;
-  subtitle: string;
-}) {
-  return (
-    <div
-      style={{
-        background: "rgba(11, 13, 16, 0.92)",
-        border: "1px solid var(--border-subtle)",
-        borderLeft: `3px solid ${tone}`,
-        borderRadius: "var(--radius-md)",
-        padding: "8px 11px 9px",
-        fontFamily: "var(--font-mono)",
-        fontSize: 11.5,
-        letterSpacing: 0.3,
-        color: "var(--text-mid)",
-        boxShadow: `0 0 0 1px ${tone}22, 0 6px 18px rgba(0,0,0,0.35)`,
-      }}
-    >
-      <div
-        style={{
-          color: tone,
-          fontWeight: 700,
-          fontSize: 10.5,
-          letterSpacing: 1.0,
-          marginBottom: 4,
-        }}
-      >
-        {label} <span style={{ opacity: 0.85 }}>· firing</span>
-      </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto 1fr",
-          columnGap: 10,
-          rowGap: 2,
-        }}
-      >
-        {rows.map((r) => (
-          <div key={r.k} style={{ display: "contents" }}>
-            <span style={{ color: "var(--text-low)", fontSize: 10.5 }}>{r.k}</span>
-            <span
-              style={{
-                color: "var(--text-hi)",
-                fontVariantNumeric: "tabular-nums",
-                textAlign: "right",
-                fontSize: 11.5,
-              }}
-            >
-              {r.v}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div
-        style={{
-          marginTop: 5,
-          fontFamily: "var(--font-sans)",
-          fontSize: 11,
-          lineHeight: "14px",
-          color: "var(--text-low)",
-        }}
-      >
-        {subtitle}
-      </div>
-    </div>
-  );
-}
 
 const Legend = memo(function Legend() {
   const [collapsed, setCollapsed] = useState(false);
