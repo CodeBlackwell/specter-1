@@ -1,12 +1,10 @@
 import { Cluster, Mono, Pill, useIsMobile } from "../lib";
 import { useSimStore, type AppMode } from "../sim";
-import { SummaryChip } from "./freeplay/SummaryChip";
 
 const MODES: ReadonlyArray<{ id: AppMode; label: string; short: string }> = [
   { id: "workshop", label: "WORKSHOP", short: "WORK" },
   { id: "coursework", label: "COURSEWORK", short: "COURSE" },
   { id: "research", label: "RESEARCH", short: "RSCH" },
-  { id: "freeplay", label: "FREE PLAY", short: "PLAY" },
 ];
 
 export function TopBar({ lessonChip }: { lessonChip: string }) {
@@ -40,7 +38,6 @@ export function TopBar({ lessonChip }: { lessonChip: string }) {
       </Mono>
       {!isStatic && !isMobile && <Pill tone="accent">{lessonChip}</Pill>}
       <ModeSegments mode={mode} onSelect={setMode} compact={isMobile} />
-      <SummaryChip />
       <div style={{ flex: 1 }} />
       {showLive && gossipRound && <Pill tone="accent">GOSSIP ROUND · t={displayTick}</Pill>}
       {showLive && (

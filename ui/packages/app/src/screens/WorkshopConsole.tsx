@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { type AttackEntry } from "../data/scenarios";
 import { LESSONS } from "../data/lessons";
 import { layoutFor } from "../data/lessonLayouts";
 import { Mono, Stack, Surface, useIsMobile } from "../lib";
 import { TopBar } from "../domain/TopBar";
 import { CurriculumRail } from "../domain/CurriculumRail";
 import { AttackDock } from "../domain/AttackDock";
-import { Composer } from "../domain/freeplay/Composer";
 import { LessonDots } from "../domain/LessonDots";
 import { LessonAdvanceOverlay } from "../domain/LessonAdvanceOverlay";
 import { PlayerOverlay } from "../domain/PlayerOverlay";
@@ -48,7 +46,6 @@ export function WorkshopConsole() {
   const selectLesson = useSimStore((s) => s.selectLesson);
   const nextLesson = useSimStore((s) => s.nextLesson);
   const prevLesson = useSimStore((s) => s.prevLesson);
-  const toggleAttack = useSimStore((s) => s.toggleAttack);
   const setPlaying = useSimStore((s) => s.setPlaying);
   const step = useSimStore((s) => s.step);
   const isPlaying = useSimStore((s) => s.isPlaying);
@@ -147,7 +144,6 @@ export function WorkshopConsole() {
     return () => window.removeEventListener("keydown", onKey);
   }, [advanceTo, isPlaying, setPlaying, step, nextLesson, prevLesson]);
 
-  const handleAttack = (entry: AttackEntry) => toggleAttack(entry.id);
   const activeAttackForBriefing = attackIds[attackIds.length - 1] ?? null;
   const activeLesson = lessonId ?? DEFAULT_LESSON;
   const lessonChip = `${activeLesson} ${lessonTitleShort(activeLesson)}`;
@@ -164,9 +160,9 @@ export function WorkshopConsole() {
         <Research />
       ) : mode === "coursework" ? (
         <Coursework />
-      ) : isMobile && (mode === "workshop" || mode === "freeplay") ? (
-        <MobileUnavailable mode={mode} />
-      ) : mode === "workshop" ? (
+      ) : isMobile && mode === "workshop" ? (
+        <MobileUnavailable />
+      ) : (
         <WorkshopLayout
           activeLesson={activeLesson}
           activeAttackForBriefing={activeAttackForBriefing}
@@ -182,23 +178,6 @@ export function WorkshopConsole() {
           showTrustPanel={layout.trustTiers !== "none"}
           isSlamLesson={isSlamLesson}
           onSelectLesson={selectLesson}
-        />
-      ) : (
-        <FreePlayLayout
-          activeLesson={activeLesson}
-          activeAttackForBriefing={activeAttackForBriefing}
-          attackIds={attackIds}
-          attackStartTick={attackStartTick}
-          snapshot={snapshot}
-          detectionMap={detectionMap}
-          coverageGrid={coverageGrid}
-          mapAttacks={mapAttacks}
-          contactReports={contactReports}
-          phantomWitnesses={phantomWitnesses}
-          rejections={rejections}
-          isSlamLesson={isSlamLesson}
-          onSelectLesson={selectLesson}
-          onToggleAttack={handleAttack}
         />
       )}
       {advanceTo ? (
@@ -329,55 +308,6 @@ function WorkshopLayout({
             {showTrustPanel ? <TrustPanel snapshot={snapshot} /> : null}
           </>
         )}
-      </div>
-    </div>
-  );
-}
-
-function FreePlayLayout({
-  snapshot,
-  detectionMap,
-  coverageGrid,
-  mapAttacks,
-  contactReports,
-  rejections,
-}: SharedSimProps & {
-  attackIds: ReadonlyArray<string>;
-  onToggleAttack: (entry: AttackEntry) => void;
-  isSlamLesson: boolean;
-}) {
-  const isRunning = useSimStore((s) => s.isRunning);
-  if (!isRunning) {
-    return <Composer />;
-  }
-  return (
-    <div
-      style={{
-        display: "flex",
-        flex: 1,
-        minHeight: 0,
-        gap: "var(--space-3)",
-        padding: "var(--space-3)",
-      }}
-    >
-      <Stack gap={2} grow style={{ minWidth: 0 }}>
-        <Surface level={1} pad={3} style={{ flex: 1, minHeight: 0, display: "flex" }}>
-          <SwarmCanvas
-            snapshot={snapshot}
-            detectionMap={detectionMap}
-            coverageGrid={coverageGrid}
-            mapAttacks={mapAttacks}
-            contactReports={contactReports}
-            rejections={rejections}
-            showRangeCircles
-          />
-        </Surface>
-        <Surface level={1} pad={2}>
-          <TickScrubber />
-        </Surface>
-      </Stack>
-      <div style={{ flex: "0 0 360px", minWidth: 320, minHeight: 0, display: "flex" }}>
-        <TrustPanel snapshot={snapshot} />
       </div>
     </div>
   );

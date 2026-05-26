@@ -1,9 +1,6 @@
-import type { FlightPattern, TickSnapshot } from "@specter/sim-core";
+import type { TickSnapshot } from "@specter/sim-core";
 import ScenarioWorker from "./scenario.worker?worker";
 import type {
-  AttackSchedule,
-  MapConfig,
-  PathPresetId,
   WorkerRequest,
   WorkerResponse,
   WorkerSliceTail,
@@ -45,11 +42,6 @@ export function streamSliceInWorker(
   attackIds: ReadonlyArray<string>,
   attackStartTick: number | undefined,
   handlers: StreamHandlers,
-  attackSchedules?: Record<string, AttackSchedule>,
-  flightPattern?: FlightPattern,
-  pathPreset?: PathPresetId | null,
-  pathWaypoints?: ReadonlyArray<[number, number]> | null,
-  mapConfig?: MapConfig,
 ): number {
   const id = nextId++;
   pending.set(id, handlers);
@@ -57,11 +49,6 @@ export function streamSliceInWorker(
     id,
     attackIds,
     attackStartTick,
-    attackSchedules,
-    flightPattern,
-    pathPreset,
-    pathWaypoints,
-    mapConfig,
   };
   getWorker().postMessage(request);
   return id;
@@ -75,4 +62,4 @@ export function cancelAllWorkerRequests(): void {
   pending.clear();
 }
 
-export type { AttackSchedule, MapConfig, PathPresetId, WorkerSliceTail };
+export type { WorkerSliceTail };

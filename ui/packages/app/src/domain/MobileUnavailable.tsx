@@ -1,27 +1,13 @@
 import { Cluster, Mono, Stack } from "../lib";
 import { useSimStore, type AppMode } from "../sim";
 
-type Props = {
-  /** Which live mode the user landed on. Drives the headline copy. */
-  mode: "workshop" | "freeplay";
-};
-
-const COPY: Record<Props["mode"], { kicker: string; title: string; body: string }> = {
-  workshop: {
-    kicker: "WORKSHOP · DESKTOP ONLY",
-    title: "The Workshop runs the live swarm — it needs a wider screen.",
-    body:
-      "Twelve lessons drive a real simulation: a canvas plus an inspector panel plus a tick scrubber. " +
-      "The layout assumes ~1280px+. Open it on a laptop and you'll see the agents move under attack. " +
-      "On a phone, two things still work — read on.",
-  },
-  freeplay: {
-    kicker: "FREE PLAY · DESKTOP ONLY",
-    title: "Free Play is the same live swarm with the attack dock unlocked.",
-    body:
-      "Lesson rail, briefing, canvas, scrubber, reputations, attack dock — five panels at once. " +
-      "It needs a wider screen. The two reading surfaces below were designed to work on mobile.",
-  },
+const COPY = {
+  kicker: "WORKSHOP · DESKTOP ONLY",
+  title: "The Workshop runs the live swarm — it needs a wider screen.",
+  body:
+    "Twelve lessons drive a real simulation: a canvas plus an inspector panel plus a tick scrubber. " +
+    "The layout assumes ~1280px+. Open it on a laptop and you'll see the agents move under attack. " +
+    "On a phone, two things still work — read on.",
 };
 
 const DESTINATIONS: ReadonlyArray<{
@@ -43,9 +29,9 @@ const DESTINATIONS: ReadonlyArray<{
   },
 ];
 
-export function MobileUnavailable({ mode }: Props) {
+export function MobileUnavailable() {
   const setMode = useSimStore((s) => s.setMode);
-  const copy = COPY[mode];
+  const copy = COPY;
   return (
     <div className="mu-scroll">
       <div className="mu-wrap">

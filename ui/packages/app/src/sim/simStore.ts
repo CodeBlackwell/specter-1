@@ -1,10 +1,7 @@
 import { startTransition } from "react";
 import { create } from "zustand";
 import {
-  MAP_PRESETS,
   type Attacker,
-  type BeaconLayoutName,
-  type FlightPattern,
   type ScenarioResult,
   type ScenarioSpec,
   type TickSnapshot,
@@ -21,57 +18,18 @@ import type { RejectionEvent } from "./rejections";
 import {
   cancelAllWorkerRequests,
   streamSliceInWorker,
-  type AttackSchedule,
-  type MapConfig,
-  type PathPresetId,
   type WorkerSliceTail,
 } from "./scenarioWorker";
 import { buildSlamSlice, isSlamLesson, slamResult } from "./slamLessons";
-import type { ComposerPreset } from "../domain/freeplay/presetSchema";
 
 const FALLBACK_ATTACK = "honest";
-const DEFAULT_END_TICK = 900;
 
-const DEFAULT_MAP_PRESET_ID = "WAREHOUSE_40x40";
-
-function findPreset(id: string) {
-  return MAP_PRESETS.find((p) => p.id === id) ?? MAP_PRESETS[0]!;
-}
-
-export type AppMode = "workshop" | "freeplay" | "research" | "coursework";
+export type AppMode = "workshop" | "research" | "coursework";
 
 type SimState = {
   mode: AppMode;
   lessonId: string | null;
   attackIds: string[];
-  /** Per-attack window (Wave 1). When an attack is selected, a default
-   * `{ startTick: 0, endTick: DEFAULT_TICKS }` is allocated; users can
-   * tighten the window via `setAttackSchedule`. Removed attacks have
-   * their schedules dropped. */
-  attackSchedules: Record<string, AttackSchedule>;
-  /** Flight pattern (Wave 2). Null = use the lesson-supplied planner if any.
-   * When non-null the worker attaches `makePlanner(defaultPlannerFor(pattern, ...))`
-   * to the scenario spec unless the spec already has a planner. */
-  flightPattern: FlightPattern | null;
-  /** Wave 3: preset name (LOOP/LINEAR/FIGURE-8/FREEHAND) driving the
-   * Free Play agents' path. `null` means "use whatever motion the
-   * lesson fixture or composed spec defines". Engine-layer note: when
-   * both `flightPattern` and `pathPreset` are set, the pattern wins
-   * (path is ignored). Wave 5 UI composition reconciles them. */
-  pathPreset: PathPresetId | null;
-  /** Wave 3: explicit waypoints (Wave 6 populates from the map editor).
-   * `null` falls back to the preset's default geometry. */
-  pathWaypoints: ReadonlyArray<[number, number]> | null;
-  /** Wave 4 — map preset id; defaults to `WAREHOUSE_40x40`. */
-  mapPresetId: string;
-  /** Wave 4 — count of beacon anchors to place via `beaconLayoutName`. */
-  beaconCount: number;
-  /** Wave 4 — beacon layout selector. Function import is `beaconLayout`;
-   * the field is renamed to avoid shadowing it. */
-  beaconLayoutName: BeaconLayoutName;
-  /** Wave 4 — user-customized beacon positions. `null` means derive from
-   * preset + layout + count; non-null overrides (Wave 6 map editor sets). */
-  beaconPositions: Array<[number, number]> | null;
   spec: ScenarioSpec | null;
   result: ScenarioResult | null;
   detectionMap: DetectionMap;
@@ -88,36 +46,12 @@ type SimState = {
   loadingProgress: number;
   selectedAgentId: string | null;
   welcomeDismissed: boolean;
-  /** Wave 5 — Free Play Compose-vs-Watch toggle. `false` shows the Composer
-   * card and suppresses auto-restream on every config edit; `true` shows the
-   * canvas + scrubber + TrustPanel and lets the existing setters auto-stream. */
-  isRunning: boolean;
-  /** Wave 6 — active tool in MapEditor. `null` is the default read-only
-   * MapPreview behavior; selecting a tool turns the preview interactive. */
-  mapTool: "MOVE" | "BEACON" | "WAYPOINT" | "ERASE" | null;
   dismissWelcome: () => void;
   setMode: (mode: AppMode) => void;
   loadScenario: (bundle: ScenarioBundle, attackId: string) => void;
   setActiveAttacks: (ids: ReadonlyArray<string>) => void;
   toggleAttack: (id: string) => void;
   setAttackStartTick: (tick: number) => void;
-  setAttackSchedule: (id: string, window: Partial<AttackSchedule>) => void;
-  setFlightPattern: (pattern: FlightPattern | null) => void;
-  setPathPreset: (preset: PathPresetId | null) => void;
-  setPathWaypoints: (waypoints: ReadonlyArray<[number, number]> | null) => void;
-  setMapPreset: (id: string) => void;
-  setBeaconCount: (n: number) => void;
-  setBeaconLayoutName: (name: BeaconLayoutName) => void;
-  setBeaconPositions: (positions: Array<[number, number]> | null) => void;
-  /** Wave 5 — freeze the current Free Play config and switch to Watch state.
-   * Triggers a fresh stream so cached compose-time edits become visible. */
-  launch: () => void;
-  /** Wave 5 — return from Watch back to Compose; pauses playback. */
-  exitRun: () => void;
-  /** Wave 6 — switch the MapEditor tool. */
-  setMapTool: (tool: SimState["mapTool"]) => void;
-  /** Wave 6 — load a saved preset; restores every field except `isRunning`. */
-  loadComposerPreset: (preset: ComposerPreset) => void;
   selectLesson: (lessonId: string) => void;
   nextLesson: () => void;
   prevLesson: () => void;
@@ -164,39 +98,8 @@ function welcomePersisted(): boolean {
 const SCENARIO_CACHE_CAPACITY = 24;
 const scenarioCache = new Map<string, Slice>();
 
-function cacheKey(
-  ids: ReadonlyArray<string>,
-  startTick: number | undefined,
-  schedules?: Record<string, AttackSchedule>,
-  flightPattern?: FlightPattern | null,
-  pathPreset?: PathPresetId | null,
-  pathWaypoints?: ReadonlyArray<[number, number]> | null,
-  mapConfig?: MapConfig,
-): string {
-  const base = `${[...ids].sort().join("|")}@${startTick ?? "auto"}`;
-  let key = base;
-  if (schedules) {
-    const tagged = [...ids]
-      .sort()
-      .map((id) => {
-        const w = schedules[id];
-        return w ? `${id}:${w.startTick}-${w.endTick}` : id;
-      })
-      .join("|");
-    key = `${key}#${tagged}`;
-  }
-  if (flightPattern) key = `${key}~p:${flightPattern}`;
-  if (pathPreset || pathWaypoints) {
-    const wpStr = pathWaypoints ? pathWaypoints.map(([x, y]) => `${x},${y}`).join(";") : "";
-    key = `${key}~path:${pathPreset ?? ""}/${wpStr}`;
-  }
-  if (mapConfig) {
-    const posTag = mapConfig.beaconPositions
-      ? `:${mapConfig.beaconPositions.map(([x, y]) => `${x.toFixed(3)},${y.toFixed(3)}`).join(";")}`
-      : "";
-    key = `${key}~m:${mapConfig.presetId}/${mapConfig.beaconLayoutName}x${mapConfig.beaconCount}${posTag}`;
-  }
-  return key;
+function cacheKey(ids: ReadonlyArray<string>, startTick: number | undefined): string {
+  return `${[...ids].sort().join("|")}@${startTick ?? "auto"}`;
 }
 
 function bumpCache(key: string, slice: Slice): void {
@@ -313,31 +216,10 @@ export const useSimStore = create<SimState>((set, get) => {
     ids: ReadonlyArray<string>,
     attackStartTick: number | undefined,
     lessonId?: string,
-    attackSchedules?: Record<string, AttackSchedule>,
-    flightPattern?: FlightPattern | null,
-    pathPreset?: PathPresetId | null,
-    pathWaypoints?: ReadonlyArray<[number, number]> | null,
-    mapConfig?: MapConfig,
   ): void {
     const effectiveIds = ids.length > 0 ? ids : [FALLBACK_ATTACK];
 
-    // Wave 5 — in Free Play Compose state, just update attackIds without
-    // touching the sim. The Composer card is up; nothing is watching.
-    const cur = get();
-    if (cur.mode === "freeplay" && !cur.isRunning) {
-      set({ attackIds: [...ids] });
-      return;
-    }
-
-    const key = cacheKey(
-      effectiveIds,
-      attackStartTick,
-      attackSchedules,
-      flightPattern,
-      pathPreset,
-      pathWaypoints,
-      mapConfig,
-    );
+    const key = cacheKey(effectiveIds, attackStartTick);
     const cached = scenarioCache.get(key);
     if (cached) {
       scenarioCache.delete(key);
@@ -368,110 +250,65 @@ export const useSimStore = create<SimState>((set, get) => {
     });
 
     const snapshots: TickSnapshot[] = [];
-    streamSliceInWorker(
-      effectiveIds,
-      attackStartTick,
-      {
-        onChunk: (chunk, soFar, total) => {
-          if (tag !== activeRequestTag) return;
-          for (const s of chunk) snapshots.push(s);
-          startTransition(() => {
-            set((prev) => ({
-              result: {
-                snapshots: snapshots.slice(),
-                rumorSubject: prev.result?.rumorSubject,
-                cliques: prev.result?.cliques,
-              } as unknown as ScenarioResult,
-              loadingProgress: soFar / total,
-              isPlaying: prev.isPlaying || snapshots.length >= 30,
-            }));
-          });
-        },
-        onDone: (tail: WorkerSliceTail) => {
-          if (tag !== activeRequestTag) return;
-          const slice: Slice = {
-            spec: specStub(snapshots.length, tail.attackStartTick, tail.hasAttackers, tail.attackerIds),
+    streamSliceInWorker(effectiveIds, attackStartTick, {
+      onChunk: (chunk, soFar, total) => {
+        if (tag !== activeRequestTag) return;
+        for (const s of chunk) snapshots.push(s);
+        startTransition(() => {
+          set((prev) => ({
             result: {
-              snapshots,
-              rumorSubject: tail.rumorSubject,
-              cliques: tail.cliques,
-            } as ScenarioResult,
-            detectionMap: tail.detectionMap,
-            coverageGrid: tail.coverageGrid,
-            mapAttacks: tail.mapAttacks,
-            contactReports: tail.contactReports,
-            phantomWitnesses: tail.phantomWitnesses,
-            rejections: tail.rejections,
-          };
-          bumpCache(key, slice);
-          startTransition(() => {
-            set({
-              spec: slice.spec,
-              detectionMap: slice.detectionMap,
-              coverageGrid: slice.coverageGrid,
-              mapAttacks: slice.mapAttacks,
-              contactReports: slice.contactReports,
-              phantomWitnesses: slice.phantomWitnesses,
-              rejections: slice.rejections,
-              loadingProgress: 1,
-              isPlaying: true,
-            });
-          });
-        },
-        onError: (err) => {
-          if (tag !== activeRequestTag) return;
-          console.error("[simStore] worker failed", err);
-          set({ loadingProgress: 0 });
-        },
+              snapshots: snapshots.slice(),
+              rumorSubject: prev.result?.rumorSubject,
+              cliques: prev.result?.cliques,
+            } as unknown as ScenarioResult,
+            loadingProgress: soFar / total,
+            isPlaying: prev.isPlaying || snapshots.length >= 30,
+          }));
+        });
       },
-      attackSchedules,
-      flightPattern ?? undefined,
-      pathPreset,
-      pathWaypoints,
-      mapConfig,
-    );
-  }
-
-  function currentMapConfig(state: SimState): MapConfig {
-    return {
-      presetId: state.mapPresetId,
-      beaconCount: state.beaconCount,
-      beaconLayoutName: state.beaconLayoutName,
-      beaconPositions: state.beaconPositions ?? undefined,
-    };
-  }
-
-  function restream(state: SimState, overrides: {
-    attackIds?: ReadonlyArray<string>;
-    attackSchedules?: Record<string, AttackSchedule>;
-    flightPattern?: FlightPattern | null;
-    pathPreset?: PathPresetId | null;
-    pathWaypoints?: ReadonlyArray<[number, number]> | null;
-  } = {}): void {
-    streamForAttacks(
-      overrides.attackIds ?? state.attackIds,
-      undefined,
-      undefined,
-      overrides.attackSchedules ?? state.attackSchedules,
-      overrides.flightPattern ?? state.flightPattern,
-      overrides.pathPreset ?? state.pathPreset,
-      overrides.pathWaypoints ?? state.pathWaypoints,
-      currentMapConfig(state),
-    );
+      onDone: (tail: WorkerSliceTail) => {
+        if (tag !== activeRequestTag) return;
+        const slice: Slice = {
+          spec: specStub(snapshots.length, tail.attackStartTick, tail.hasAttackers, tail.attackerIds),
+          result: {
+            snapshots,
+            rumorSubject: tail.rumorSubject,
+            cliques: tail.cliques,
+          } as ScenarioResult,
+          detectionMap: tail.detectionMap,
+          coverageGrid: tail.coverageGrid,
+          mapAttacks: tail.mapAttacks,
+          contactReports: tail.contactReports,
+          phantomWitnesses: tail.phantomWitnesses,
+          rejections: tail.rejections,
+        };
+        bumpCache(key, slice);
+        startTransition(() => {
+          set({
+            spec: slice.spec,
+            detectionMap: slice.detectionMap,
+            coverageGrid: slice.coverageGrid,
+            mapAttacks: slice.mapAttacks,
+            contactReports: slice.contactReports,
+            phantomWitnesses: slice.phantomWitnesses,
+            rejections: slice.rejections,
+            loadingProgress: 1,
+            isPlaying: true,
+          });
+        });
+      },
+      onError: (err) => {
+        if (tag !== activeRequestTag) return;
+        console.error("[simStore] worker failed", err);
+        set({ loadingProgress: 0 });
+      },
+    });
   }
 
   return {
     mode: "workshop",
     lessonId: null,
     attackIds: [],
-    attackSchedules: {},
-    flightPattern: null,
-    pathPreset: null,
-    pathWaypoints: null,
-    mapPresetId: DEFAULT_MAP_PRESET_ID,
-    beaconCount: findPreset(DEFAULT_MAP_PRESET_ID).defaultBeaconCount,
-    beaconLayoutName: findPreset(DEFAULT_MAP_PRESET_ID).defaultBeaconLayout,
-    beaconPositions: null,
     spec: null,
     result: null,
     detectionMap: {},
@@ -488,50 +325,10 @@ export const useSimStore = create<SimState>((set, get) => {
     loadingProgress: 1,
     selectedAgentId: null,
     welcomeDismissed: welcomePersisted(),
-    isRunning: false,
-    mapTool: null,
 
     dismissWelcome: () => set({ welcomeDismissed: true }),
 
-    setMode: (mode) => {
-      // Free Play always opens in Compose state; other modes ignore the flag.
-      set({ mode, isRunning: mode === "freeplay" ? false : true });
-    },
-
-    launch: () => {
-      const state = get();
-      set({ isRunning: true });
-      streamForAttacks(
-        state.attackIds,
-        undefined,
-        undefined,
-        state.attackSchedules,
-        state.flightPattern,
-        state.pathPreset,
-        state.pathWaypoints,
-        currentMapConfig(state),
-      );
-    },
-
-    exitRun: () => set({ isRunning: false, isPlaying: false }),
-
-    setMapTool: (tool) => set({ mapTool: tool }),
-
-    loadComposerPreset: (preset) => {
-      set({
-        attackIds: [...preset.attackIds],
-        attackSchedules: { ...preset.attackSchedules },
-        flightPattern: preset.flightPattern,
-        pathPreset: preset.pathPreset,
-        pathWaypoints: preset.pathWaypoints ? [...preset.pathWaypoints] : null,
-        mapPresetId: preset.mapPresetId,
-        beaconCount: preset.beaconCount,
-        beaconLayoutName: preset.beaconLayoutName,
-        beaconPositions: preset.beaconPositions
-          ? preset.beaconPositions.map(([x, y]) => [x, y] as [number, number])
-          : null,
-      });
-    },
+    setMode: (mode) => set({ mode }),
 
     loadScenario: (_bundle, attackId) => {
       streamForAttacks([attackId], undefined);
@@ -543,86 +340,16 @@ export const useSimStore = create<SimState>((set, get) => {
 
     toggleAttack: (id) => {
       const state = get();
-      const isAdding = !state.attackIds.includes(id);
-      const next = isAdding
-        ? [...state.attackIds, id]
-        : state.attackIds.filter((x) => x !== id);
-      const schedules = { ...state.attackSchedules };
-      if (isAdding) {
-        schedules[id] = { startTick: 0, endTick: DEFAULT_END_TICK };
-      } else {
-        delete schedules[id];
-      }
-      set({ attackSchedules: schedules });
-      restream(get(), { attackIds: next, attackSchedules: schedules });
+      const next = state.attackIds.includes(id)
+        ? state.attackIds.filter((x) => x !== id)
+        : [...state.attackIds, id];
+      streamForAttacks(next, undefined);
     },
 
     setAttackStartTick: (tick) => {
       const state = get();
       if (state.attackIds.length === 0) return;
-      streamForAttacks(
-        state.attackIds,
-        Math.max(0, Math.round(tick)),
-        undefined,
-        state.attackSchedules,
-        state.flightPattern,
-        state.pathPreset,
-        state.pathWaypoints,
-        currentMapConfig(state),
-      );
-    },
-
-    setAttackSchedule: (id, partial) => {
-      const state = get();
-      if (!state.attackIds.includes(id)) return;
-      const existing = state.attackSchedules[id] ?? { startTick: 0, endTick: DEFAULT_END_TICK };
-      const startTick = Math.max(0, Math.round(partial.startTick ?? existing.startTick));
-      const endTick = Math.max(startTick + 1, Math.round(partial.endTick ?? existing.endTick));
-      const schedules = { ...state.attackSchedules, [id]: { startTick, endTick } };
-      set({ attackSchedules: schedules });
-      restream(get(), { attackSchedules: schedules });
-    },
-
-    setFlightPattern: (pattern) => {
-      set({ flightPattern: pattern });
-      restream(get(), { flightPattern: pattern });
-    },
-
-    setPathPreset: (preset) => {
-      set({ pathPreset: preset });
-      restream(get(), { pathPreset: preset });
-    },
-
-    setPathWaypoints: (waypoints) => {
-      set({ pathWaypoints: waypoints });
-      restream(get(), { pathWaypoints: waypoints });
-    },
-
-    setMapPreset: (id) => {
-      const preset = findPreset(id);
-      set({
-        mapPresetId: preset.id,
-        beaconCount: preset.defaultBeaconCount,
-        beaconLayoutName: preset.defaultBeaconLayout,
-        beaconPositions: null,
-      });
-      restream(get());
-    },
-
-    setBeaconCount: (n) => {
-      const clamped = Math.max(0, Math.round(n));
-      set({ beaconCount: clamped, beaconPositions: null });
-      restream(get());
-    },
-
-    setBeaconLayoutName: (name) => {
-      set({ beaconLayoutName: name, beaconPositions: null });
-      restream(get());
-    },
-
-    setBeaconPositions: (positions) => {
-      set({ beaconPositions: positions });
-      restream(get());
+      streamForAttacks(state.attackIds, Math.max(0, Math.round(tick)));
     },
 
     selectLesson: (lessonId) => {

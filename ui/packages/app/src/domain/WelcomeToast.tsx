@@ -31,13 +31,6 @@ const SECTIONS: ReadonlyArray<Section> = [
     blurb:
       "Benchmarks, ADR-cited claims, and the auditable measurement battery — every \"we resist X\" number traces to a scenario test.",
   },
-  {
-    id: "freeplay",
-    label: "Free Play",
-    badge: "Beta",
-    blurb:
-      "Open sandbox — pick any scenario, toggle attacks live, scrub through ticks. For exploring edge cases the curriculum doesn't cover.",
-  },
 ];
 
 function Key({ label }: { label: string }) {
@@ -336,7 +329,7 @@ export function WelcomeToast() {
         <div style={{ display: "grid", gap: 0, marginBottom: isMobile ? 16 : 22 }}>
           {SECTIONS.map((s, i) => {
             const isHovered = hoveredIdx === i;
-            const desktopOnly = isMobile && (s.id === "workshop" || s.id === "freeplay");
+            const desktopOnly = isMobile && s.id === "workshop";
             const badge = desktopOnly ? "Desktop" : s.badge;
             return (
               <button

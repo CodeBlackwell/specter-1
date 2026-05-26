@@ -20,16 +20,6 @@ export {
 } from "./landmarks";
 
 export {
-  MAP_PRESETS,
-  mapBounds,
-  beaconLayout,
-  type BeaconLayoutName,
-  type MapPreset,
-  type MapSize,
-  type MapBounds,
-} from "./maps";
-
-export {
   cscFromTriplets,
   cscToDense,
   denseToCsc,
@@ -121,19 +111,6 @@ export {
 } from "./beacons";
 
 export { Swarm, type Tick, type SwarmOptions, type VelocityCommand } from "./swarm";
-
-export {
-  loopWaypoints,
-  linearPath,
-  figure8,
-  freehand,
-  pathFollower,
-  defaultPathFor,
-  type Path,
-  type PathPreset,
-  type Point2,
-  type Bounds,
-} from "./paths";
 
 export {
   eigSymmetric,
@@ -249,22 +226,6 @@ export {
   type Planner,
   type PlannerContext,
 } from "./scenario";
-
-export {
-  lawnmower,
-  orbit,
-  rendezvous,
-  randomWalk,
-  makePlanner,
-  defaultPlannerFor,
-  type LawnmowerOpts,
-  type OrbitOpts,
-  type RendezvousOpts,
-  type RandomWalkOpts,
-  type FlightPattern,
-  type FlightPatternConfig,
-  type DefaultPlannerOpts,
-} from "./planners";
 
 export {
   generateKeypair,
