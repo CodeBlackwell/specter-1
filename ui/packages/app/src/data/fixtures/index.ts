@@ -27,6 +27,12 @@ const KNOWN_ATTACK_IDS: ReadonlySet<string> = new Set(
     .map((l) => l.attackIds[0]!),
 );
 
+const MULTI_ATTACK_LESSON_IDS: ReadonlySet<string> = new Set(
+  LESSONS
+    .filter((l) => l.attackIds.length > 1 && !SLAM_TRUNKS.has(l.id))
+    .map((l) => l.id),
+);
+
 const cache = new Map<string, Promise<LessonFixture>>();
 
 function reviver(_key: string, value: unknown): unknown {
@@ -38,35 +44,44 @@ function reviver(_key: string, value: unknown): unknown {
   return value;
 }
 
-function fixtureUrl(attackId: string): string {
-  return `${import.meta.env.BASE_URL}fixtures/${attackId}.json`;
+function fixtureUrl(slug: string): string {
+  return `${import.meta.env.BASE_URL}fixtures/${slug}.json`;
 }
 
-async function loadAttackFixture(attackId: string): Promise<LessonFixture> {
-  const existing = cache.get(attackId);
+async function loadFixtureBySlug(slug: string): Promise<LessonFixture> {
+  const existing = cache.get(slug);
   if (existing) return existing;
-  const promise = fetch(fixtureUrl(attackId))
+  const promise = fetch(fixtureUrl(slug))
     .then((res) => {
-      if (!res.ok) throw new Error(`Fixture ${attackId} → HTTP ${res.status}`);
+      if (!res.ok) throw new Error(`Fixture ${slug} → HTTP ${res.status}`);
       return res.text();
     })
     .then((raw) => JSON.parse(raw, reviver) as LessonFixture);
-  cache.set(attackId, promise);
+  cache.set(slug, promise);
   return promise;
 }
 
 export async function loadLessonFixture(lessonId: string): Promise<LessonFixture | null> {
   const lesson = LESSONS.find((l) => l.id === lessonId);
   if (!lesson) return null;
-  if (lesson.attackIds.length !== 1) return null;
-  const attackId = lesson.attackIds[0]!;
-  if (!KNOWN_ATTACK_IDS.has(attackId)) return null;
-  return loadAttackFixture(attackId);
+  if (SLAM_TRUNKS.has(lesson.id)) return null;
+  if (lesson.attackIds.length === 1) {
+    const attackId = lesson.attackIds[0]!;
+    if (!KNOWN_ATTACK_IDS.has(attackId)) return null;
+    return loadFixtureBySlug(attackId);
+  }
+  if (MULTI_ATTACK_LESSON_IDS.has(lesson.id)) {
+    return loadFixtureBySlug(`lesson_${lesson.id}`);
+  }
+  return null;
 }
 
 export function warmFixtureCache(): void {
   for (const attackId of KNOWN_ATTACK_IDS) {
-    void loadAttackFixture(attackId).catch(() => {});
+    void loadFixtureBySlug(attackId).catch(() => {});
+  }
+  for (const lessonId of MULTI_ATTACK_LESSON_IDS) {
+    void loadFixtureBySlug(`lesson_${lessonId}`).catch(() => {});
   }
 }
 

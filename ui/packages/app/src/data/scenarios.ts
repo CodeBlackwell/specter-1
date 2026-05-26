@@ -306,10 +306,17 @@ export const ATTACK_CATALOG: ReadonlyArray<AttackEntry> = [
         grid,
         spec: {
           ...spec,
+          // Tightened from the default 900 → 500 ticks. attackStartTick
+          // 115 is the earliest empirically-reliable ignition: anything
+          // before ~tick 115 fires while the wheel-planner formation is
+          // still in motion, so MDS sees ambiguous geometry and Tier-2
+          // never sticks. At 115 the colluders' reputations cross 0.5
+          // by tick 200, below 0.3 by tick ~290, and settle below 0.15
+          // by tick 400 — the collapse is clearly visible in the rep
+          // strip from tick 200 onward and dramatic by tick 300.
+          ticks: 500,
           attackers: colluderPair(agents[0]!.id, agents[1]!.id, 6.0),
-          // ~3s of formation at the default 35Hz playback before the
-          // colluder pair begins inflating their mutual range.
-          attackStartTick: 105,
+          attackStartTick: 115,
         },
       };
     },

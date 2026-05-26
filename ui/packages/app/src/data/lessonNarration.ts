@@ -9,16 +9,18 @@ export type NarrationStep = {
  *  easy to miss without a pointer to the right moment. Lessons not listed
  *  here render no banner. Tick numbers are calibrated against the lesson's
  *  attackStartTick in data/scenarios.ts and the default 35Hz playback
- *  (35 ticks ≈ 1 second of wall time). L3 pushes ignition to tick 105
- *  (~3s of formation) and spaces beats across the 900-tick scenario budget
- *  (~25.7s). */
+ *  (35 ticks ≈ 1 second of wall time). L3 ignites at tick 115 (formation
+ *  must be settled or MDS sees ambiguous geometry) against a 500-tick
+ *  budget — colluder reputations cross 0.5 by tick 200, are clearly
+ *  collapsed by tick 300, and settle near the floor by tick 400. */
 export const LESSON_NARRATION: Record<string, ReadonlyArray<NarrationStep>> = {
   "03": [
     { tick: 0, caption: "Drones forming up — honest baseline, reciprocal ranges agree, the MDS embedding is clean." },
-    { tick: 105, caption: "Formation settled. A0 + A1 begin symmetrically inflating their mutual range by 6 m." },
-    { tick: 230, caption: "Tier 1 reciprocity shrugs — the colluders' numbers still match each other." },
-    { tick: 380, caption: "MDS embeddability climbs past τ = 0.05 — three ranges can no longer embed in 2D." },
-    { tick: 560, caption: "Colluder chord locks onto A0 ↔ A1 — Tier 2 has the geometry Tier 1 can't see." },
+    { tick: 115, caption: "Formation settled. A0 + A1 begin symmetrically inflating their mutual range by 6 m." },
+    { tick: 170, caption: "Tier 1 reciprocity shrugs — the colluders' numbers still match each other." },
+    { tick: 220, caption: "MDS embeddability climbs past τ = 0.05 — three ranges can no longer embed in 2D." },
+    { tick: 260, caption: "Colluder chord locks onto A0 ↔ A1 — Tier 2 has the geometry Tier 1 can't see." },
+    { tick: 300, caption: "A0 and A1's reputations through the 0.3 floor — accumulated Tier-2 evidence cuts the liars from the swarm." },
   ],
   "04": [
     { tick: 0, caption: "Honest baseline — UWB ranges noisy but within the 3σ envelope." },
