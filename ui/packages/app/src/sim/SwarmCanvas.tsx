@@ -3337,18 +3337,18 @@ function MapStatusOverlay({
         position: "absolute",
         right: 12,
         top: 12,
-        padding: "10px 12px",
+        padding: "7px 8px",
         background: "rgba(11, 13, 16, 0.92)",
         border: "1px solid var(--border-subtle)",
         borderRadius: "var(--radius-md)",
         fontFamily: "var(--font-mono)",
-        fontSize: 11,
+        fontSize: 8,
         color: "var(--text-mid)",
         pointerEvents: "auto",
         display: "flex",
         flexDirection: "column",
-        gap: 6,
-        minWidth: 220,
+        gap: 4,
+        minWidth: 154,
         maxHeight: "calc(100% - 60px)",
         overflowY: "auto",
         letterSpacing: 0.3,
@@ -3366,7 +3366,7 @@ function MapStatusOverlay({
       <StatusRow label="contested" value={contested} hint="byz observer" color="var(--status-flagged)" />
       <StatusRow label="unmapped" value={unmapped} hint="no overflight" color="var(--text-low)" />
       <div style={{ height: 1, background: "var(--border-subtle)" }} />
-      <span style={{ color: "var(--text-low)", fontSize: 11.5, letterSpacing: 1 }}>
+      <span style={{ color: "var(--text-low)", fontSize: 8, letterSpacing: 1 }}>
         BY KIND
       </span>
       <KindRow label="buildings" mapped={perKind.building!.mapped} total={perKind.building!.total} />
@@ -3374,10 +3374,10 @@ function MapStatusOverlay({
       <KindRow label="UXO" mapped={perKind.uxo!.mapped} total={perKind.uxo!.total} />
       <KindRow label="friendly" mapped={perKind.fob!.mapped} total={perKind.fob!.total} />
       <div style={{ height: 1, background: "var(--border-subtle)" }} />
-      <span style={{ color: "var(--text-low)", fontSize: 11.5, letterSpacing: 1 }}>
+      <span style={{ color: "var(--text-low)", fontSize: 8, letterSpacing: 1 }}>
         CONFIRMATIONS
       </span>
-      <div style={{ display: "flex", gap: 10, fontSize: 11.5 }}>
+      <div style={{ display: "flex", gap: 7, fontSize: 8 }}>
         <span style={{ color: "var(--status-nominal)" }}>✓ {trustedConfirmations} trusted</span>
         <span style={{ color: "var(--status-byzantine)" }}>✗ {untrustedConfirmations} byz</span>
       </div>
@@ -3430,7 +3430,7 @@ function CopFilterSection({
   return (
     <>
       <div style={{ height: 1, background: "var(--border-subtle)" }} />
-      <span style={{ color: "var(--status-byzantine)", fontSize: 11.5, letterSpacing: 1 }}>
+      <span style={{ color: "var(--status-byzantine)", fontSize: 8, letterSpacing: 1 }}>
         COP FILTER
       </span>
       {alleged > 0 ? (
@@ -3515,20 +3515,20 @@ function ProgressBar({
   const pct = total === 0 ? 0 : (current / total) * 100;
   const valueText = suffix === "%" ? `${current}${suffix}` : `${current}/${total}`;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11 }}>
-      <span style={{ width: 70, color: "var(--text-low)" }}>{label}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 8 }}>
+      <span style={{ width: 50, color: "var(--text-low)" }}>{label}</span>
       <div
         style={{
           flex: 1,
-          height: 6,
+          height: 4,
           background: "var(--surface-2)",
-          borderRadius: 3,
+          borderRadius: 2,
           overflow: "hidden",
         }}
       >
         <div style={{ width: `${pct}%`, height: "100%", background: color }} />
       </div>
-      <span style={{ width: 40, textAlign: "right", color }}>{valueText}</span>
+      <span style={{ width: 28, textAlign: "right", color }}>{valueText}</span>
     </div>
   );
 }
@@ -3545,10 +3545,10 @@ function StatusRow({
   color: string;
 }) {
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 11 }}>
-      <span style={{ width: 70, color: "var(--text-low)" }}>{label}</span>
-      <span style={{ width: 24, color, textAlign: "right" }}>{value}</span>
-      <span style={{ color: "var(--text-low)", fontSize: 11.5, opacity: 0.7 }}>{hint}</span>
+    <div style={{ display: "flex", alignItems: "baseline", gap: 6, fontSize: 8 }}>
+      <span style={{ width: 50, color: "var(--text-low)" }}>{label}</span>
+      <span style={{ width: 17, color, textAlign: "right" }}>{value}</span>
+      <span style={{ color: "var(--text-low)", fontSize: 8, opacity: 0.7 }}>{hint}</span>
     </div>
   );
 }
@@ -3556,8 +3556,8 @@ function StatusRow({
 function KindRow({ label, mapped, total }: { label: string; mapped: number; total: number }) {
   const color = mapped === total ? "var(--status-nominal)" : "var(--text-mid)";
   return (
-    <div style={{ display: "flex", alignItems: "baseline", gap: 8, fontSize: 11.5 }}>
-      <span style={{ width: 70, color: "var(--text-low)" }}>{label}</span>
+    <div style={{ display: "flex", alignItems: "baseline", gap: 6, fontSize: 8 }}>
+      <span style={{ width: 50, color: "var(--text-low)" }}>{label}</span>
       <span style={{ color }}>{`${mapped}/${total}`}</span>
     </div>
   );
@@ -3634,18 +3634,18 @@ const Legend = memo(function Legend() {
         position: "absolute",
         left: 12,
         bottom: 12,
-        padding: collapsed ? "8px 10px" : "10px 12px",
+        padding: collapsed ? "6px 7px" : "7px 8px",
         background: "rgba(11, 13, 16, 0.90)",
         border: "1px solid var(--border-subtle)",
         borderRadius: "var(--radius-md)",
         display: "flex",
         flexDirection: "column",
-        gap: 4,
+        gap: 3,
         fontFamily: "var(--font-mono)",
-        fontSize: 11.5,
+        fontSize: 8,
         letterSpacing: 0.3,
         color: "var(--text-mid)",
-        maxWidth: 240,
+        maxWidth: 168,
         maxHeight: "calc(100% - 24px)",
         overflowY: "auto",
       }}
@@ -3658,11 +3658,11 @@ const Legend = memo(function Legend() {
           color: "var(--accent-primary)",
           letterSpacing: 1,
           fontWeight: 700,
-          fontSize: 11,
+          fontSize: 8,
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          gap: 6,
+          gap: 4,
         }}
       >
         <span>{collapsed ? "▸" : "▾"}</span>
@@ -3701,9 +3701,9 @@ function LegendHeader({ label }: { label: string }) {
       style={{
         color: "var(--text-low)",
         letterSpacing: 1.2,
-        fontSize: 9.5,
+        fontSize: 7,
         textTransform: "uppercase",
-        marginTop: 4,
+        marginTop: 3,
       }}
     >
       {label}
@@ -3873,11 +3873,11 @@ type LegendSwatch =
 
 function LegendRow({ swatch, color, label }: { swatch: LegendSwatch; color: string; label: string }) {
   return (
-    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
       <span
         style={{
-          width: 18,
-          height: 12,
+          width: 13,
+          height: 8,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
